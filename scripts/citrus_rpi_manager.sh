@@ -30,7 +30,7 @@ ${RESET}\
 '
 
 # --- Variables ---
-CITRUS_DIR="$(dirname "$(realpath "$0")")/.."
+CITRUS_DIR="$HOME/citrus"
 VENV="$CITRUS_DIR/venv"
 PYTHON="$VENV/bin/python3"
 LOGFILE="$CITRUS_DIR/citrus.log"
@@ -58,12 +58,11 @@ install_citrus() {
     echo -e "${GREEN}Installation complète de Citrus...${RESET}"
     separator
     sudo apt update && sudo apt install -y python3-pip python3-venv ffmpeg git
-    # Clonage ou mise à jour du dépôt Citrus (toujours dans $CITRUS_DIR)
+    # Clonage ou mise à jour du dépôt Citrus (toujours dans $HOME/citrus)
     if [ ! -f "$CITRUS_DIR/requirements.txt" ]; then
         echo -e "${CYAN}Clonage du dépôt Citrus dans $CITRUS_DIR...${RESET}"
-        cd "$(dirname \"$CITRUS_DIR\")"
-        rm -rf "$(basename \"$CITRUS_DIR\")"
-        git clone https://github.com/trinityIV/Citrus.git "$(basename \"$CITRUS_DIR\")"
+        rm -rf "$CITRUS_DIR"
+        git clone https://github.com/trinityIV/Citrus.git "$CITRUS_DIR"
     else
         echo -e "${CYAN}Mise à jour du dépôt Citrus...${RESET}"
         git -C "$CITRUS_DIR" pull
