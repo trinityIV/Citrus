@@ -1,9 +1,10 @@
 import os
 import sys
-import json
 import logging
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask_login import LoginManager, UserMixin, current_user, AnonymousUserMixin, login_required, login_user, logout_user
+from config.logging_config import setup_logging
 from werkzeug.utils import secure_filename
 import yt_dlp
 from dotenv import load_dotenv
@@ -12,16 +13,17 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from services.downloader import DownloadManager
 from services.metadata import MetadataExtractor
 
-# Configuration du logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('citrus.log')
-    ]
-)
-logger = logging.getLogger(__name__)
+# Définition de l'utilisateur anonyme
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+class Anonymous(AnonymousUserMixin):
+    def __init__(self):
+        self.id = 'guest'
+
+# Configuration du logger
+logger = setup_logging()
 
 # Chargement des variables d'environnement
 load_dotenv()
@@ -30,6 +32,20 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'dev-key-change-me')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
+
+# Enregistrement des blueprints
+# TODO: Réactiver une fois les clés Spotify configurées
+# from spotify import spotify
+# app.register_blueprint(spotify)
+
+# Configuration de Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.anonymous_user = Anonymous
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
 
 # Chemins importants
 BASE_DIR = Path(__file__).parent.absolute()
@@ -53,10 +69,31 @@ if os.getenv('SPOTIFY_CLIENT_ID') and os.getenv('SPOTIFY_CLIENT_SECRET'):
     )
     sp = spotipy.Spotify(auth_manager=auth_manager)
 
+# Routes d'authentification
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Pour l'instant, on accepte n'importe quel utilisateur
+        login_user(User('guest'))
+        return redirect(url_for('index'))
+    return render_template('base.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
 @app.route('/')
 def index():
     """Page d'accueil"""
-    return render_template('index.html')
+    # Calcul des statistiques
+    stats = {
+        'tracks': len(list(MUSIC_FOLDER.glob('*.*'))),
+        'downloads': len(download_manager.tasks) if hasattr(download_manager, 'tasks') else 0,
+        'playlists': 0  # À implémenter plus tard
+    }
+    return render_template('index.html', stats=stats)
 
 @app.route('/api/download', methods=['POST'])
 def download():

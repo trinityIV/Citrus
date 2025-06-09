@@ -16,19 +16,8 @@ log() {
 
 # Fonction pour afficher la progression
 show_progress() {
-    local duration=$1
-    local step=$2
-    local width=50
-    local progress=0
-    
-    while [ $progress -le 100 ]; do
-        local num_chars=$(($progress * $width / 100))
-        local num_spaces=$((width - num_chars))
-        printf "\r[%${num_chars}s%${num_spaces}s] %d%%" "${step}" | tr ' ' '#' | tr '#' ' '
-        progress=$((progress + 2))
-        sleep $(echo "scale=3; $duration/50" | bc)
-    done
-    echo
+    local step=$1
+    echo -ne "\r\033[K[$step] Installation en cours..."
 }
 
 # Fonction pour vérifier les prérequis
@@ -43,8 +32,8 @@ check_prerequisites() {
     log "OK" "Système Raspberry Pi détecté"
     
     # Vérifier l'espace disque
-    FREE_SPACE=$(df -h / | awk 'NR==2 {print $4}' | sed 's/G//')
-    if (( $(echo "$FREE_SPACE < 2" | bc -l) )); then
+    FREE_SPACE=$(df -h / | awk 'NR==2 {print $4}')
+    if [[ ! $FREE_SPACE =~ "G" ]] || [[ ${FREE_SPACE%G} -lt 2 ]]; then
         log "ERROR" "Il faut au moins 2GB d'espace libre"
         exit 1
     fi

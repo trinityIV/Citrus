@@ -153,17 +153,10 @@
                 <i class="fab fa-youtube"></i>
                 <span>YouTube</span>
             </a>
-            {% if 'spotify_token' in session %}
-            <a href="{{ url_for('spotify.spotify_refresh') }}" class="service-btn spotify connected" data-service="spotify">
+            <a href="#" class="service-btn spotify disabled" data-service="spotify">
                 <i class="fab fa-spotify"></i>
-                <span>Spotify Connecté</span>
+                <span>Spotify (Bientôt disponible)</span>
             </a>
-            {% else %}
-            <a href="{{ url_for('spotify.spotify_login') }}" class="service-btn spotify" data-service="spotify">
-                <i class="fab fa-spotify"></i>
-                <span>Connecter Spotify</span>
-            </a>
-            {% endif %}
             <a href="#soundcloud" class="service-btn soundcloud" data-service="soundcloud">
                 <i class="fab fa-soundcloud"></i>
                 <span>SoundCloud</span>
@@ -231,18 +224,9 @@
     
     <div class="tabs">
         <div class="tab active" data-tab="url">Par URL</div>
-        <div class="tab" data-tab="search">Recherche</div>
+        <div class="tab" data-tab="search">Rechercher</div>
         <div class="tab" data-tab="playlist">Playlist</div>
     </div>
-    
-    <section class="download-section glass-card fade-in" style="animation-delay: 0.2s">
-        <h2 class="section-title"><i class="fas fa-cloud-download-alt"></i> Télécharger de la musique</h2>
-        
-        <div class="tabs">
-            <div class="tab active" data-tab="url">Par URL</div>
-            <div class="tab" data-tab="search">Rechercher</div>
-            <div class="tab" data-tab="playlist">Playlist</div>
-        </div>
         
         <div class="tab-content active" id="urlTab">
             <div class="container">
@@ -432,5 +416,79 @@
             document.getElementById('sidebar').classList.remove('active');
         });
     });
+
+    // Gestion des onglets
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Retirer la classe active de tous les onglets
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Ajouter la classe active à l'onglet cliqué
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+        });
+    });
+
+    // Gestion du formulaire de téléchargement
+    const downloadForm = document.getElementById('downloadForm');
+    if (downloadForm) {
+        downloadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = document.getElementById('downloadUrl').value;
+            const service = document.getElementById('downloadService').value;
+            
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url, service })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erreur lors du téléchargement');
+                }
+                
+                const data = await response.json();
+                console.log('Téléchargement démarré:', data);
+                
+                // Ajouter une notification de succès
+                const notification = document.createElement('div');
+                notification.className = 'notification success';
+                notification.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>Téléchargement démarré</span>
+                `;
+                document.body.appendChild(notification);
+                
+                // Supprimer la notification après 3 secondes
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+                
+                // Réinitialiser le formulaire
+                downloadForm.reset();
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                // Ajouter une notification d'erreur
+                const notification = document.createElement('div');
+                notification.className = 'notification error';
+                notification.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>${error.message}</span>
+                `;
+                document.body.appendChild(notification);
+                
+                // Supprimer la notification après 3 secondes
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        });
+    }
 </script>
 {% endblock %}

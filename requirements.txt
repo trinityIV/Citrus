@@ -33,13 +33,14 @@ PyJWT==2.8.0
 cryptography==41.0.3
 
 # APIs et Téléchargement
-yt-dlp==2023.7.6  # Version testée sur RPi
+yt-dlp==2023.7.6  # Streaming et APIs
 beautifulsoup4==4.12.2
 lxml==4.9.3
+spotipy==2.23.0  # Client Spotify API
 
 # Audio et Interface
-PyQt6==6.5.2  # Version compatible ARM
 simpleaudio==1.0.4  # Alternative légère à pyaudio
+# PyQt6 est installé via apt (python3-pyqt6)
 
 # Performance et Optimisation
 numpy==1.24.3  # Version optimisée pour ARM
@@ -48,4 +49,4 @@ cachetools==5.3.1  # Pour le cache en mémoire
 
 # Networking
 websockets==11.0.3
-dns-python==2.4.2  # Pour la résolution DNS asynchrone
+dnspython==2.4.2  # Pour la résolution DNS asynchrone
