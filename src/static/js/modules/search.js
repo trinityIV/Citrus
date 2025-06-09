@@ -1,5 +1,6 @@
 /**
- * Module SearchService - Gestion de la recherche musicale
+ * Module SearchService - Recherche musicale 100% scrapping backend (yt-dlp)
+ * Aucun token ou clé API nécessaire.
  */
 
 import { showNotification } from './notifications.js';
@@ -62,9 +63,9 @@ export class SearchService {
             // Afficher le chargement
             this.searchResults.innerHTML = '<div class="loading">Recherche en cours...</div>';
             
-            // Faire la requête à l'API
+            // Faire la requête au backend scrapping (yt-dlp)
             const response = await fetch(`${this.config.apiEndpoints.search}?q=${encodeURIComponent(query)}`);
-            if (!response.ok) throw new Error('Erreur réseau');
+            if (!response.ok) throw new Error('Erreur réseau ou scrapping');
             
             const results = await response.json();
             

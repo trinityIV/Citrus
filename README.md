@@ -79,9 +79,8 @@ python src/web_app.py
 
 ### Backend
 - **Flask** : Framework web léger et performant
-- **aiohttp** : Clients API asynchrones
+- **yt-dlp** : Outil de téléchargement et de streaming optimisé
 - **SQLAlchemy** : ORM pour la gestion des données
-- **yt-dlp** : Téléchargement et streaming optimisés
 
 ### Frontend
 - **JavaScript Modulaire** : Architecture en composants
@@ -93,8 +92,7 @@ python src/web_app.py
 ```
 citrus/
 ├── src/
-│   ├── services/    # Services métier
-│   ├── utils/       # Clients API et utilitaires
+│   ├── utils/       # Utilitaires
 │   ├── routes/      # Routes de l'application
 │   ├── static/      # Assets frontend
 │   └── web_app.py   # Point d'entrée

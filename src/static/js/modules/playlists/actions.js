@@ -1,5 +1,6 @@
 /**
- * Module Actions - Gestion des actions sur les playlists
+ * Module Actions - Gestion des actions sur les playlists (scrapping only, backend yt-dlp)
+ * Aucun token ou clé API nécessaire.
  */
 
 import { showNotification } from '../notifications.js';

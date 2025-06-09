@@ -1,5 +1,6 @@
 /**
- * Module Playlist - Gestion des playlists
+ * Module Playlist - Gestion des playlists (scrapping only, yt-dlp)
+ * Aucun token ou clé API nécessaire.
  */
 
 import { showNotification } from './notifications.js';
@@ -54,7 +55,7 @@ export class PlaylistService {
                 body: JSON.stringify({ url })
             });
             
-            if (!response.ok) throw new Error('Erreur réseau');
+            if (!response.ok) throw new Error('Erreur réseau ou scrapping');
             
             const playlist = await response.json();
             this.currentPlaylist = playlist;

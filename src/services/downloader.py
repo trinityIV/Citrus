@@ -34,7 +34,7 @@ class DownloadManager:
         self.tasks: Dict[str, DownloadTask] = {}
         self.lock = threading.Lock()
         
-        # Configuration yt-dlp
+        # yt-dlp only: tous les téléchargements passent par yt-dlp (scrapping, pas d'API ni clé)
         self.ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': str(download_dir / '%(title)s.%(ext)s'),

@@ -12,9 +12,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from utils.exceptions import DownloadError, ValidationError
-from utils.spotify import SpotifyClient
-from utils.youtube import YouTubeClient
-from utils.soundcloud import SoundCloudClient
+
 from utils.deezer import DeezerClient
 
 class DownloadStatus(BaseModel):
@@ -57,19 +55,14 @@ class DownloadManager:
         self.active_downloads = 0
         self.download_lock = asyncio.Lock()
         
-        # Clients pour les différentes plateformes
-        self.spotify = SpotifyClient()
-        self.youtube = YouTubeClient()
-        self.soundcloud = SoundCloudClient()
-        self.deezer = DeezerClient()
-        
+        # Plus de clients API : tout passe par yt-dlp désormais
         # Démarrer les workers
         asyncio.create_task(self._process_queue())
         asyncio.create_task(self._process_batch_queue())
     
     async def add_to_queue(self, track: dict) -> str:
         """
-        Ajoute un téléchargement à la file d'attente.
+        Ajoute un téléchargement à la file d'attente (yt-dlp uniquement).
         """
         download_id = str(uuid.uuid4())
         
@@ -89,6 +82,43 @@ class DownloadManager:
             playlist_id=track.get("playlist_id"),
             playlist_title=track.get("playlist_title")
         )
+        self.downloads[download_id] = status
+        await self.queue.put(download_id)
+        return download_id
+
+    async def _process_queue(self):
+        while True:
+            download_id = await self.queue.get()
+            status = self.downloads[download_id]
+            try:
+                await self._download_with_ytdlp(status)
+            except Exception as e:
+                status.status = 'error'
+                status.error = str(e)
+            self.queue.task_done()
+
+    async def _download_with_ytdlp(self, status):
+        """Télécharge une piste ou playlist via yt-dlp (scrapping only)."""
+        import yt_dlp
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': f'static/music/%(title)s.%(ext)s',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'quiet': True,
+            'no_warnings': True
+        }
+        status.status = 'downloading'
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(status.url, download=True)
+            status.status = 'completed'
+            status.file_path = ydl.prepare_filename(info)
+            status.progress = 100
+            status.completed_at = datetime.now()
+
         
         self.downloads[download_id] = status
         await self.queue.put(download_id)

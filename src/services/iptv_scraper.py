@@ -15,7 +15,7 @@ from urllib.parse import urljoin
 logger = logging.getLogger(__name__)
 
 class IPTVScraper:
-    """Scraper pour flux IPTV gratuits"""
+    """Scraper pour flux IPTV gratuits (scrapping only, aucune clé/API externe)"""
     
     def __init__(self):
         # Sources de base (m3u/m3u8)

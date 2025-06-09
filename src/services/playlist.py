@@ -8,9 +8,7 @@ from typing import Dict, List, Any, Optional
 from urllib.parse import urlparse, parse_qs
 from pydantic import BaseModel
 
-from utils.spotify import SpotifyClient
-from utils.youtube import YouTubeClient
-from utils.soundcloud import SoundCloudClient
+
 from utils.deezer import DeezerClient
 from utils.exceptions import ServiceError, ValidationError
 
@@ -38,10 +36,11 @@ class Playlist(BaseModel):
 class PlaylistService:
     def __init__(self):
         # Initialiser les clients
-        self.spotify = SpotifyClient()
-        self.youtube = YouTubeClient()
-        self.soundcloud = SoundCloudClient()
-        self.deezer = DeezerClient()
+        
+        self.spotify = clients.spotify
+        self.youtube = clients.youtube
+        self.soundcloud = clients.soundcloud
+        self.deezer = clients.deezer
         
         # Cache des playlists (TTL: 5 minutes)
         self.cache: Dict[str, Dict] = {}

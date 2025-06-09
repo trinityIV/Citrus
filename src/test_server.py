@@ -25,27 +25,39 @@ class CitrusServerTester:
                 return False
         return True
 
+    def execute_ssh_command(self, command):
+        """Exécute une commande SSH sur le serveur distant"""
+        try:
+            result = subprocess.run(
+                ['ssh', '-o', 'StrictHostKeyChecking=no', 'trn@192.168.0.181', command],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            return result
+        except Exception as e:
+            self.logger.error(f"Erreur SSH: {e}")
+            return None
+
     def kill_existing_server(self):
         """Tue les processus Python existants"""
         self.logger.info("Arrêt des serveurs existants")
-        try:
-            subprocess.run(['ssh', '-o', 'StrictHostKeyChecking=no', 'trn@192.168.0.181', 'pkill -f "python src/web_app.py"'], check=False)
-            time.sleep(2)  # Attendre que les processus soient tués
+        result = self.execute_ssh_command('pkill -f "python src/web_app.py"')
+        if result:
+            time.sleep(2)
             self.logger.info("Serveurs existants arrêtés avec succès")
-        except Exception as e:
-            self.logger.warning(f"Erreur lors de l'arrêt des serveurs: {e}")
 
     def start_server(self):
         """Démarre le serveur Flask"""
         self.logger.info("Démarrage du serveur Flask")
         try:
             # Démarrer le serveur en arrière-plan
-            subprocess.Popen([
-                'ssh',
-                '-o', 'StrictHostKeyChecking=no',
-                'trn@192.168.0.181',
-                'cd /home/trn/citrus && source venv/bin/activate && PYTHONPATH=/home/trn/citrus/src python src/web_app.py'
-            ])
+            command = 'cd /home/trn/citrus && source venv/bin/activate && nohup PYTHONPATH=/home/trn/citrus/src python src/web_app.py > /dev/null 2>&1 &'
+            result = self.execute_ssh_command(command)
+            
+            if not result:
+                self.logger.error("Erreur lors du démarrage du serveur")
+                return False
             
             # Attendre que le serveur soit prêt
             max_attempts = 10

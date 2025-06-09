@@ -1,15 +1,17 @@
 """
 Utilitaires pour l'API SoundCloud
 """
-import os
-from typing import Dict, Any, List, Optional
-from aiohttp import ClientSession, ClientTimeout
-from .exceptions import ServiceError, ValidationError
+import yt_dlp
+from typing import Dict, Any
 
-class SoundCloudClient:
-    """Client pour l'API SoundCloud avec gestion des requêtes."""
-    
-    def __init__(self):
+# Helper pour récupérer les infos d'une piste ou playlist SoundCloud via yt-dlp (scrapping)
+def get_soundcloud_info(url: str) -> Dict[str, Any]:
+    """Récupère les informations d'une piste ou playlist SoundCloud via yt-dlp."""
+    ydl_opts = {'quiet': True, 'extract_flat': True}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        return ydl.extract_info(url, download=False)
+
+
         # Configuration
         self.client_id = os.getenv('SOUNDCLOUD_CLIENT_ID')
         self.base_url = 'https://api.soundcloud.com'

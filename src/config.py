@@ -35,12 +35,11 @@ class Config:
         'no_warnings': True
     }
     
-    # APIs gratuites pour métadonnées et images
+    # APIs gratuites pour métadonnées et images (optionnel, pas de clé ni auth)
     MUSICBRAINZ_API = 'https://musicbrainz.org/ws/2'
-    LASTFM_API = 'https://ws.audioscrobbler.com/2.0'
     COVERARTARCHIVE_API = 'https://coverartarchive.org'
     
-    # APIs IPTV gratuites
+    # Sources IPTV publiques
     IPTV_SOURCES = [
         'https://iptv-org.github.io/iptv/index.m3u',
         'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8'

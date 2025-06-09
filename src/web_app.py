@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 import yt_dlp
 from dotenv import load_dotenv
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+
 from services.downloader import DownloadManager
 from services.metadata import MetadataExtractor
 
@@ -62,12 +62,6 @@ metadata_extractor = MetadataExtractor()
 
 # Configuration de Spotify
 sp = None
-if os.getenv('SPOTIFY_CLIENT_ID') and os.getenv('SPOTIFY_CLIENT_SECRET'):
-    auth_manager = SpotifyClientCredentials(
-        client_id=os.getenv('SPOTIFY_CLIENT_ID'),
-        client_secret=os.getenv('SPOTIFY_CLIENT_SECRET')
-    )
-    sp = spotipy.Spotify(auth_manager=auth_manager)
 
 # Routes d'authentification
 @app.route('/login', methods=['GET', 'POST'])

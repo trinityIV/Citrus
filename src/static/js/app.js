@@ -15,15 +15,15 @@ import { PlaylistService } from './modules/playlist.js';
 import { initBatchDownloader } from './modules/batch.js';
 import { initPreviews } from './modules/preview.js';
 
-// Configuration globale
-const CONFIG = {
+// Configuration globale de l'application (scrapping only, aucune clé API requise)
+export const config = {
     apiEndpoints: {
+        stats: '/api/stats',
         download: '/api/download',
         search: '/api/search',
         playlist: '/api/playlist',
         library: '/api/library',
-        status: '/api/status',
-        stats: '/api/stats'
+        status: '/api/status'
     },
     download: {
         maxConcurrent: 3,
@@ -47,19 +47,19 @@ document.addEventListener('DOMContentLoaded', function() {
         initUI();
         
         // Initialiser les services
-        new SearchService(CONFIG);
-        new PlaylistService(CONFIG);
+        new SearchService(config);
+        new PlaylistService(config);
         
         // Initialiser les modules audio
-        initPlayer(CONFIG);
+        initPlayer(config);
         initPreviews();
         
         // Initialiser les gestionnaires de téléchargement
-        initDownloader(CONFIG);
-        initBatchDownloader(CONFIG);
+        initDownloader(config);
+        initBatchDownloader(config);
         
         // Initialiser la bibliothèque
-        initLibrary(CONFIG);
+        initLibrary(config);
         
         // Exposer certaines fonctions au contexte global
         window.showNotification = showNotification;

@@ -1,25 +1,15 @@
 """
 Utilitaires pour l'API YouTube
 """
-import os
-from typing import Dict, Any, List
-import aiohttp
-from .exceptions import ServiceError
+import yt_dlp
+from typing import Dict, Any
 
-YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
-
-class YouTubeClient:
-    """Client pour l'API YouTube avec gestion des requêtes."""
-    
-    def __init__(self):
-        # Configuration
-        self.api_key = os.getenv('YOUTUBE_API_KEY')
-        self.base_url = 'https://www.googleapis.com/youtube/v3'
-        self.timeout = aiohttp.ClientTimeout(total=10)
-        
-        # Session HTTP
-        self.session: Optional[aiohttp.ClientSession] = None
-        
+# Helper pour récupérer les infos d'une vidéo ou playlist YouTube via yt-dlp (scrapping)
+def get_youtube_info(url: str) -> Dict[str, Any]:
+    """Récupère les informations d'une vidéo ou playlist YouTube via yt-dlp."""
+    ydl_opts = {'quiet': True, 'extract_flat': True}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        return ydl.extract_info(url, download=False)
         # Vérifier la configuration
         if not self.api_key:
             raise ValidationError("Clé API YouTube non configurée")

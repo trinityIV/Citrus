@@ -1,5 +1,5 @@
 /**
- * Gestion des streams (IPTV et Torrents)
+ * Gestion des streams (IPTV et Torrents) - scrapping only, aucune clé API requise
  */
 
 class StreamManager {
