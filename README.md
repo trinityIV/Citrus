@@ -4,9 +4,10 @@
 
 *Une solution de streaming musical moderne, élégante et performante*
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/trinityIV/Citrus/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi%2FLinux-green)](https://www.raspberrypi.org/)
+[![GitHub](https://img.shields.io/badge/GitHub-trinityIV%2FCitrus-black)](https://github.com/trinityIV/Citrus)
 
 [Documentation](#documentation) • 
 [Installation](#installation) • 
@@ -52,7 +53,7 @@ Citrus Music Server est une plateforme de streaming musical nouvelle génératio
 ### Installation Automatique (Recommandée)
 ```bash
 # Cloner le dépôt
-git clone https://github.com/0xvertake/citrus.git
+git clone https://github.com/trinityIV/Citrus.git
 cd citrus
 
 # Lancer l'installateur
@@ -131,7 +132,7 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 ---
 
 <div align="center">
-Créé avec ❤️ par 0xvertake
+Créé avec ❤️ par trinityIV
 
-[Documentation](docs/) • [Issues](issues/) • [Discussions](discussions/)
+[Documentation](https://github.com/trinityIV/Citrus/tree/main/docs) • [Issues](https://github.com/trinityIV/Citrus/issues) • [Discussions](https://github.com/trinityIV/Citrus/discussions)
 </div>
