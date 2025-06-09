@@ -18,16 +18,16 @@ WHITE='\033[1;37m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
-CITRUS_ASCII="""
-${YELLOW}
- ██████╗██╗████████╗██████╗ ██╗   ██╗███████╗
-██╔════╝██║╚══██╔══╝██╔══██╗██║   ██║██╔════╝
-██║     ██║   ██║   ██████╔╝██║   ██║███████╗
-██║     ██║   ██║   ██╔══██╗██║   ██║╚════██║
-╚██████╗██║   ██║   ██║  ██║╚██████╔╝███████║
- ╚═════╝╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
-${RESET}"
-"""
+CITRUS_ASCII='\
+${YELLOW}\
+ ██████╗██╗████████╗██████╗ ██╗   ██╗███████╗\
+██╔════╝██║╚══██╔══╝██╔══██╗██║   ██║██╔════╝\
+██║     ██║   ██║   ██████╔╝██║   ██║███████╗\
+██║     ██║   ██║   ██╔══██╗██║   ██║╚════██║\
+╚██████╗██║   ██║   ██║  ██║╚██████╔╝███████║\
+ ╚═════╝╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝\
+${RESET}\
+'
 
 # --- Variables ---
 CITRUS_DIR="$(dirname "$(realpath "$0")")/.."
@@ -37,23 +37,23 @@ LOGFILE="$CITRUS_DIR/citrus.log"
 BACKUP_DIR="$CITRUS_DIR/backups"
 
 # --- Fonctions utilitaires ---
-function print_header() {
+print_header() {
     clear
     echo -e "$CITRUS_ASCII"
     echo -e "${CYAN}==== Gestionnaire Citrus pour Raspberry Pi ====${RESET}"
 }
 
-function separator() {
+separator() {
     echo -e "${MAGENTA}----------------------------------------------${RESET}"
 }
 
-function press_enter() {
+press_enter() {
     echo -e "\n${YELLOW}Appuie sur Entrée pour continuer...${RESET}"
     read
 }
 
 # --- Installation complète ---
-function install_citrus() {
+install_citrus() {
     print_header
     echo -e "${GREEN}Installation complète de Citrus...${RESET}"
     separator
@@ -69,7 +69,7 @@ function install_citrus() {
 }
 
 # --- Lancement du serveur ---
-function start_citrus() {
+start_citrus() {
     print_header
     echo -e "${GREEN}Démarrage du Citrus Music Server...${RESET}"
     separator
@@ -82,7 +82,7 @@ function start_citrus() {
 }
 
 # --- Arrêt du serveur ---
-function stop_citrus() {
+stop_citrus() {
     print_header
     echo -e "${RED}Arrêt du Citrus Music Server...${RESET}"
     separator
@@ -96,7 +96,7 @@ function stop_citrus() {
 }
 
 # --- Mise à jour du projet ---
-function update_citrus() {
+update_citrus() {
     print_header
     echo -e "${BLUE}Mise à jour du projet Citrus...${RESET}"
     separator
@@ -108,7 +108,7 @@ function update_citrus() {
 }
 
 # --- Sauvegarde (backup) ---
-function backup_citrus() {
+backup_citrus() {
     print_header
     separator
     mkdir -p "$BACKUP_DIR"
@@ -119,7 +119,7 @@ function backup_citrus() {
 }
 
 # --- Affichage des logs ---
-function show_logs() {
+show_logs() {
     print_header
     echo -e "${CYAN}Affichage des logs Citrus (Ctrl+C pour quitter)${RESET}"
     separator
@@ -127,7 +127,7 @@ function show_logs() {
 }
 
 # --- Menu principal ---
-function main_menu() {
+main_menu() {
     while true; do
         print_header
         echo -e "${BOLD}${WHITE}Que veux-tu faire ?${RESET}"
