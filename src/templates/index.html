@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Citrus Music{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styles spécifiques à la page d'accueil */
+    .hero-section {
+        text-align: center;
+        padding: 4rem 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(30, 144, 255, 0.1));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+    }
+    
+    .hero-section h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(90deg, var(--citrus-yellow), var(--ocean-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+    }
+    
+    .hero-section p {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.8);
+        max-width: 700px;
+        margin: 0 auto 2rem;
+        line-height: 1.6;
+    }
+    
+    .search-container {
+        max-width: 700px;
+        margin: 0 auto 3rem;
+        position: relative;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 1.2rem 2rem 1.2rem 3.5rem;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--white);
+        font-size: 1.1rem;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: var(--transition);
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: var(--citrus-yellow);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--citrus-yellow);
+        font-size: 1.2rem;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        margin-right: 1rem;
+        color: var(--citrus-yellow);
+    }
+    
+    .recent-tracks {
+        margin-top: 3rem;
+    }
+    
+    .tabs {
+        display: flex;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 0.5rem;
+    }
+    
+    .tab {
+        padding: 0.5rem 1.5rem;
+        margin-right: 1rem;
+        cursor: pointer;
+        border-radius: 50px;
+        transition: var(--transition);
+        font-weight: 500;
+    }
+    
+    .tab.active {
+        background: rgba(255, 215, 0, 0.1);
+        color: var(--citrus-yellow);
+    }
+    
+    .tab:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Animation pour les cartes de musique */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .track-card {
+        animation: slideIn 0.5s ease-out forwards;
+        opacity: 0;
+    }
+    
+    .track-card:nth-child(1) { animation-delay: 0.1s; }
+    .track-card:nth-child(2) { animation-delay: 0.2s; }
+    .track-card:nth-child(3) { animation-delay: 0.3s; }
+    .track-card:nth-child(4) { animation-delay: 0.4s; }
+    .track-card:nth-child(5) { animation-delay: 0.5s; }
+    .track-card:nth-child(6) { animation-delay: 0.6s; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Section Héro -->
+    <section class="hero-section fade-in">
+        <h1>Bienvenue sur Citrus Music</h1>
+        <p>Découvrez, écoutez et partagez votre musique préférée depuis n'importe quelle source.</p>
+        
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="Rechercher des morceaux, des artistes ou des albums...">
+        </div>
+        
+        <div class="service-buttons">
+            <a href="#youtube" class="service-btn youtube" data-service="youtube">
+                <i class="fab fa-youtube"></i>
+                <span>YouTube</span>
+            </a>
+            {% if 'spotify_token' in session %}
+            <a href="{{ url_for('spotify.spotify_refresh') }}" class="service-btn spotify connected" data-service="spotify">
+                <i class="fab fa-spotify"></i>
+                <span>Spotify Connecté</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('spotify.spotify_login') }}" class="service-btn spotify" data-service="spotify">
+                <i class="fab fa-spotify"></i>
+                <span>Connecter Spotify</span>
+            </a>
+            {% endif %}
+            <a href="#soundcloud" class="service-btn soundcloud" data-service="soundcloud">
+                <i class="fab fa-soundcloud"></i>
+                <span>SoundCloud</span>
+            </a>
+            <a href="#deezer" class="service-btn deezer" data-service="deezer">
+                <i class="fab fa-deezer"></i>
+                <span>Deezer</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Section statistiques -->
+    <section class="stats-section">
+        <div class="stat-card">
+            <h2>{{ stats.tracks|default(0) }}</h2>
+            <p>Morceaux</p>
+        </div>
+        <div class="stat-card">
+            <h2>{{ stats.artists|default(0) }}</h2>
+            <p>Artistes</p>
+        </div>
+        <div class="stat-card">
+            <h2>{{ stats.albums|default(0) }}</h2>
+            <p>Albums</p>
+        </div>
+        <div class="stat-card">
+            <h2>{{ stats.duration|default('0h 00m') }}</h2>
+            <p>Durée totale</p>
+        </div>
+    </section>
+
+    <!-- Section dernières musiques -->
+    <section class="recent-tracks">
+        <h2 class="section-title"><i class="fas fa-clock-rotate-left"></i> Dernières musiques</h2>
+        <div class="main-grid">
+            {% for track in recent_tracks|default([]) %}
+            <div class="music-card">
+                <img src="{{ track.cover_url|default('/static/img/default-cover.jpg') }}" alt="{{ track.title }}">
+                <h3>{{ track.title }}</h3>
+                <p>{{ track.artist }}</p>
+                <div class="card-actions">
+                    <button class="play-btn" title="Lire">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="add-playlist-btn" title="Ajouter à une playlist">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="music-card empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <h3>Aucune musique</h3>
+                <p>Commencez à ajouter de la musique à votre bibliothèque</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+<!-- Section Téléchargement -->
+<section class="download-section glass-card fade-in" style="animation-delay: 0.2s">
+    <h2 class="section-title"><i class="fas fa-cloud-download-alt"></i> Télécharger de la musique</h2>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="url">Par URL</div>
+        <div class="tab" data-tab="search">Recherche</div>
+        <div class="tab" data-tab="playlist">Playlist</div>
+    </div>
+    
+    <section class="download-section glass-card fade-in" style="animation-delay: 0.2s">
+        <h2 class="section-title"><i class="fas fa-cloud-download-alt"></i> Télécharger de la musique</h2>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="url">Par URL</div>
+            <div class="tab" data-tab="search">Rechercher</div>
+            <div class="tab" data-tab="playlist">Playlist</div>
+        </div>
+        
+        <div class="tab-content active" id="urlTab">
+            <div class="container">
+                <form id="downloadForm" class="download-form glass-form">
+                    <div class="form-group">
+                        <i class="fas fa-link input-icon"></i>
+                        <input type="url" id="downloadUrl" 
+                               class="form-input" 
+                               placeholder="Entrez l'URL de la musique..." 
+                               required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <i class="fas fa-music input-icon"></i>
+                        <select id="downloadService" class="form-input">
+                            <option value="youtube">YouTube</option>
+                            <option value="spotify">Spotify</option>
+                            <option value="soundcloud">SoundCloud</option>
+                            <option value="deezer">Deezer</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-glow">
+                        <i class="fas fa-download"></i> Télécharger
+                    </button>
+                </form>
+                
+                <div class="downloads-container">
+                    <h3 class="downloads-title">
+                        <i class="fas fa-tasks"></i> Téléchargements en cours
+                    </h3>
+                    <div class="download-items glass-list">
+                        <!-- Les téléchargements seront ajoutés ici dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="searchTab">
+            <div class="container">
+                <div class="search-box glass-form">
+                    <i class="fas fa-search input-icon"></i>
+                    <input type="text" 
+                           class="form-input" 
+                           placeholder="Rechercher une musique...">
+                </div>
+                <div class="search-results glass-list">
+                    <!-- Les résultats de recherche seront ajoutés ici -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="playlistTab">
+            <div class="container">
+                <div class="playlist-input glass-form">
+                    <i class="fas fa-list input-icon"></i>
+                    <input type="url" 
+                           class="form-input" 
+                           placeholder="Entrez l'URL de la playlist...">
+                </div>
+                <div class="playlist-tracks glass-list">
+                    <!-- Les pistes de la playlist seront ajoutées ici -->
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="download-progress" id="downloadProgress" style="display: none;">
+        <div class="progress-container" style="margin: 2rem 0;">
+            <div class="progress-bar">
+                <div class="progress" id="downloadProgressBar" style="width: 0%;"></div>
+            </div>
+            <div class="time-display">
+                <span id="downloadStatus">Préparation du téléchargement...</span>
+                <span id="downloadPercentage">0%</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Dernières musiques ajoutées -->
+<section class="recent-tracks fade-in" style="animation-delay: 0.3s">
+    <h2 class="section-title"><i class="fas fa-history"></i> Dernières musiques</h2>
+    
+    <div class="tracks-grid" id="recentTracks">
+        <!-- Les pistes seront chargées dynamiquement ici -->
+        <div class="track-card">
+            <div class="track-cover" style="background-image: url('https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg');">
+                <div class="track-overlay">
+                    <div class="play-btn">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="track-info">
+                <div class="track-title">Never Gonna Give You Up</div>
+                <div class="track-artist">Rick Astley</div>
+            </div>
+        </div>
+        
+        <!-- Plus de pistes seront ajoutées dynamiquement -->
+    </div>
+</section>
+
+<!-- Statistiques -->
+<section class="stats-section glass-card fade-in" style="animation-delay: 0.4s">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-value" id="totalTracks">0</div>
+            <div class="stat-label">Morceaux</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="totalArtists">0</div>
+            <div class="stat-label">Artistes</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="totalAlbums">0</div>
+            <div class="stat-label">Albums</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="totalPlaytime">0h 00m</div>
+            <div class="stat-label">Durée totale</div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialisation des onglets
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Retirer la classe active de tous les onglets
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            // Ajouter la classe active à l'onglet cliqué
+            tab.classList.add('active');
+            // Ici, vous pouvez ajouter la logique pour changer le contenu des onglets
+        });
+    });
+    
+    // Gestion du formulaire de téléchargement
+    document.getElementById('downloadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const url = document.getElementById('mediaUrl').value.trim();
+        const format = document.getElementById('format').value;
+        
+        if (!url) {
+            alert('Veuillez entrer une URL valide');
+            return;
+        }
+        
+        // Afficher la barre de progression
+        document.getElementById('downloadProgress').style.display = 'block';
+        document.getElementById('downloadStatus').textContent = 'Téléchargement en cours...';
+        
+        // Simuler un téléchargement (à remplacer par un appel API réel)
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(progressInterval);
+                document.getElementById('downloadStatus').textContent = 'Téléchargement terminé !';
+                
+                // Réinitialiser après un délai
+                setTimeout(() => {
+                    document.getElementById('downloadProgress').style.display = 'none';
+                    document.getElementById('downloadProgressBar').style.width = '0%';
+                    document.getElementById('downloadPercentage').textContent = '0%';
+                    document.getElementById('downloadForm').reset();
+                }, 2000);
+            }
+            
+            document.getElementById('downloadProgressBar').style.width = `${progress}%`;
+            document.getElementById('downloadPercentage').textContent = `${Math.round(progress)}%`;
+        }, 300);
+    });
+    
+    // Menu mobile
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('active');
+    });
+    
+    // Fermer le menu mobile lors du clic sur un lien
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('active');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,98 @@
+/* Styles pour les boutons de téléchargement */
+
+.download-btn,
+.download-playlist-btn {
+    background: linear-gradient(45deg, #2196F3, #00BCD4);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+}
+
+.download-playlist-btn {
+    border-radius: 20px;
+    width: auto;
+    padding: 0 20px;
+}
+
+.download-btn:hover,
+.download-playlist-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    background: linear-gradient(45deg, #1976D2, #0097A7);
+}
+
+.download-btn:active,
+.download-playlist-btn:active {
+    transform: scale(0.95);
+}
+
+/* Animation de téléchargement */
+.downloading {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Style pour le menu de sélection de format */
+.format-select {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    outline: none;
+    margin: 0 10px;
+}
+
+.format-select option {
+    background: #2c3e50;
+    color: white;
+}
+
+/* Notification de téléchargement */
+.download-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(33, 150, 243, 0.9);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Profil - Citrus Music{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="glass-card">
+        <h2>Profil Utilisateur</h2>
+        
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-success">
+            {{ messages[0] }}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <div class="profile-info">
+            <div class="avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            
+            <div class="user-details">
+                <h3>{{ current_user.username }}</h3>
+                <p>Membre depuis le {{ current_user.created_at.strftime('%d/%m/%Y') }}</p>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-value">{{ current_user.playlists|length }}</span>
+                    <span class="stat-label">Playlists</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-actions">
+            <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Modifier le profil
+            </a>
+        </div>
+    </div>
+    
+    <div class="glass-card">
+        <h3>Mes Playlists</h3>
+        {% if current_user.playlists %}
+            <div class="playlist-grid">
+                {% for playlist in current_user.playlists %}
+                <div class="playlist-card">
+                    <div class="playlist-cover">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="playlist-info">
+                        <h4>{{ playlist.name }}</h4>
+                        <p>{{ playlist.tracks|length }} pistes</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-content">Aucune playlist créée</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

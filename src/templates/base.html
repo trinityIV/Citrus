@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Citrus Music - Votre musique sans limites{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS personnalisé -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Vidéo d'arrière-plan -->
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="{{ url_for('static', filename='videos/beach.mp4') }}" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+    
+    <!-- Bouton menu mobile -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Canvas pour les particules -->
+    <div id="particles" class="particles-container"></div>
+    
+    <!-- Barre latérale -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <i class="fas fa-music"></i>
+            <span>Citrus</span>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="{{ url_for('main.index') }}" class="nav-item active" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Accueil</span>
+            </a>
+
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auth.profile') }}" class="nav-item" data-page="profile">
+                    <i class="fas fa-user"></i>
+                    <span>Mon Profil</span>
+                </a>
+                <a href="#" class="nav-item" data-page="library">
+                    <i class="fas fa-music"></i>
+                    <span>Ma Musique</span>
+                </a>
+                <a href="#" class="nav-item" data-page="playlists">
+                    <i class="fas fa-list"></i>
+                    <span>Playlists</span>
+                </a>
+                <a href="#" class="nav-item" data-page="downloads">
+                    <i class="fas fa-download"></i>
+                    <span>Téléchargements</span>
+                </a>
+                <a href="#" class="nav-item" data-page="streams">
+                    <i class="fas fa-tv"></i>
+                    <span>Streams</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-item" data-page="logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Déconnexion</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="nav-item" data-page="login">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Connexion</span>
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="nav-item" data-page="register">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Inscription</span>
+                </a>
+            {% endif %}
+            {% if current_user.is_authenticated %}
+            <a href="#" class="nav-item" data-page="settings">
+                <i class="fas fa-cog"></i>
+                <span>Paramètres</span>
+            </a>
+            {% endif %}
+        </nav>
+        
+        <div class="user-section">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name">Invité</div>
+                <div class="user-status">Hors ligne</div>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Contenu principal -->
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Lecteur audio -->
+    <div class="player-container" id="player">
+        <div class="player-cover" id="playerCover">
+            <i class="fas fa-music"></i>
+        </div>
+        
+        <div class="player-info">
+            <div class="player-title" id="playerTitle">Aucune lecture en cours</div>
+            <div class="player-artist" id="playerArtist">Sélectionnez une musique</div>
+        </div>
+        
+        <div class="player-controls">
+            <button class="control-btn" id="prevBtn">
+                <i class="fas fa-step-backward"></i>
+            </button>
+            <button class="control-btn play-pause" id="playPauseBtn">
+                <i class="fas fa-play"></i>
+            </button>
+            <button class="control-btn" id="nextBtn">
+                <i class="fas fa-step-forward"></i>
+            </button>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="time-display">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+        
+        <div class="volume-control">
+            <i class="fas fa-volume-up"></i>
+            <input type="range" id="volume" min="0" max="1" step="0.1" value="0.8">
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/particles.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/modules/notifications.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/modules/downloader.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}" type="module"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,139 @@
+/* Styles pour les téléchargements en masse */
+
+.batch-progress {
+    background: var(--surface-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: var(--shadow-elevation-medium);
+    backdrop-filter: blur(10px);
+}
+
+.batch-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    background: var(--surface-color-hover);
+    border-radius: 0.5rem;
+    transition: transform 0.2s ease;
+}
+
+.stat:hover {
+    transform: translateY(-2px);
+}
+
+.stat .label {
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.stat .value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.stat .value.success {
+    color: var(--success-color);
+}
+
+.stat .value.error {
+    color: var(--error-color);
+}
+
+.stat .value.warning {
+    color: var(--warning-color);
+}
+
+.stat .value.info {
+    color: var(--info-color);
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--surface-color-hover);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.progress-bar .progress {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--primary-color) 0%,
+        var(--accent-color) 100%
+    );
+    transition: width 0.3s ease;
+}
+
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: var(--error-color-hover);
+    transform: translateY(-1px);
+}
+
+.btn-cancel:active {
+    transform: translateY(0);
+}
+
+.btn-cancel i {
+    font-size: 1.1rem;
+}
+
+/* Animation de chargement */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.stat .value.info {
+    animation: pulse 1.5s ease infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .batch-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat {
+        padding: 0.75rem;
+    }
+    
+    .stat .value {
+        font-size: 1.25rem;
+    }
+}

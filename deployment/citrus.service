@@ -1,0 +1,14 @@
+[Unit]
+Description=Citrus Music Server
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/citrus
+Environment="PATH=/home/pi/citrus/venv/bin"
+ExecStart=/home/pi/citrus/venv/bin/python src/web_app.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

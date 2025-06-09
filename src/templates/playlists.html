@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Playlists | Citrus Music{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Playlists</h1>
+        <div class="page-actions">
+            <button id="createPlaylistBtn" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle Playlist
+            </button>
+        </div>
+    </div>
+
+    <div class="playlists-container">
+        <div class="playlists-grid" id="playlistsGrid">
+            <!-- Les playlists seront chargées dynamiquement ici -->
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Chargement des playlists...
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section pour la playlist active -->
+    <div id="activePlaylist" class="active-playlist" style="display: none;">
+        <div class="playlist-header">
+            <div class="playlist-cover" id="playlistCover">
+                <i class="fas fa-music"></i>
+            </div>
+            <div class="playlist-info">
+                <h2 id="playlistName">Nom de la playlist</h2>
+                <p id="playlistDescription">Description de la playlist</p>
+                <div class="playlist-meta">
+                    <span id="playlistTrackCount">0 morceaux</span>
+                    <span id="playlistDuration">0h 0m</span>
+                </div>
+                <div class="playlist-actions">
+                    <button id="playPlaylistBtn" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Lecture
+                    </button>
+                    <button id="shufflePlaylistBtn" class="btn btn-secondary">
+                        <i class="fas fa-random"></i> Aléatoire
+                    </button>
+                    <button id="editPlaylistBtn" class="btn btn-secondary">
+                        <i class="fas fa-edit"></i> Modifier
+                    </button>
+                    <button id="deletePlaylistBtn" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="playlist-tracks">
+            <table class="tracks-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Titre</th>
+                        <th>Artiste</th>
+                        <th>Album</th>
+                        <th>Durée</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="playlistTracks">
+                    <!-- Les morceaux de la playlist seront chargés ici -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modèle pour les playlists -->
+<template id="playlistTemplate">
+    <div class="playlist-card">
+        <div class="playlist-cover">
+            <div class="playlist-overlay">
+                <div class="play-btn">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>
+        </div>
+        <div class="playlist-info">
+            <div class="playlist-name"></div>
+            <div class="playlist-tracks-count"></div>
+        </div>
+    </div>
+</template>
+
+<!-- Modal pour créer/éditer une playlist -->
+<div id="playlistModal" class="modal">
+    <div class="modal-content glass">
+        <div class="modal-header">
+            <h2 id="modalTitle">Nouvelle Playlist</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="playlistForm">
+                <div class="form-group">
+                    <label for="playlistNameInput">Nom</label>
+                    <input type="text" id="playlistNameInput" placeholder="Nom de la playlist" required>
+                </div>
+                <div class="form-group">
+                    <label for="playlistDescInput">Description</label>
+                    <textarea id="playlistDescInput" placeholder="Description (optionnelle)"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="playlistCoverInput">Image de couverture</label>
+                    <input type="file" id="playlistCoverInput" accept="image/*">
+                    <div id="coverPreview" class="cover-preview"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelPlaylistBtn">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { initPlaylists, loadPlaylists } from '/static/js/modules/playlists.js';
+    import { initCardHoverEffects } from '/static/js/modules/effects.js';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuration
+        const CONFIG = {
+            apiEndpoints: {
+                playlists: '/api/playlists',
+                library: '/api/library'
+            }
+        };
+        
+        // Initialiser les playlists
+        initPlaylists(CONFIG);
+        
+        // Charger les playlists
+        loadPlaylists(CONFIG);
+        
+        // Initialiser les effets de survol des cartes
+        initCardHoverEffects();
+    });
+</script>
+{% endblock %}
