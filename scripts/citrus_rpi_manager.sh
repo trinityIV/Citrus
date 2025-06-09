@@ -58,6 +58,17 @@ install_citrus() {
     echo -e "${GREEN}Installation complète de Citrus...${RESET}"
     separator
     sudo apt update && sudo apt install -y python3-pip python3-venv ffmpeg git
+    # Clonage ou mise à jour du dépôt Citrus (toujours dans $CITRUS_DIR)
+    if [ ! -f "$CITRUS_DIR/requirements.txt" ]; then
+        echo -e "${CYAN}Clonage du dépôt Citrus dans $CITRUS_DIR...${RESET}"
+        cd "$(dirname \"$CITRUS_DIR\")"
+        rm -rf "$(basename \"$CITRUS_DIR\")"
+        git clone https://github.com/trinityIV/Citrus.git "$(basename \"$CITRUS_DIR\")"
+    else
+        echo -e "${CYAN}Mise à jour du dépôt Citrus...${RESET}"
+        git -C "$CITRUS_DIR" pull
+    fi
+    # Création et activation du venv
     if [ ! -d "$VENV" ]; then
         python3 -m venv "$VENV"
     fi
