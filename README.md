@@ -27,6 +27,8 @@ Citrus Music Server est une plateforme de streaming musical nouvelle génératio
 - 🎨 Interface utilisateur moderne avec thème néon
 - 📱 Design responsive et adaptatif
 - 🛠️ Installation automatisée
+- 🔒 Gestion robuste des erreurs et stabilité améliorée
+- 🧩 Architecture JavaScript modulaire avec utilitaires DOM sécurisés
 
 ## ✨ Fonctionnalités
 
@@ -106,6 +108,18 @@ citrus/
 - **RAM** : < 200MB en utilisation normale
 - **Réseau** : Optimisé pour connexions lentes
 - **Cache** : Réduction de 70% des appels API
+
+## 🔴 Dernières mises à jour
+
+### Version 1.2.0 (10 juin 2025)
+
+- **Correction d'erreurs critiques** : Résolution des problèmes d'API et de JavaScript
+- **Nouvel endpoint `/api/library`** : Accès à la bibliothèque musicale avec pagination et tri
+- **Amélioration du téléchargement** : Gestion robuste des erreurs et des doublons
+- **Utilitaires DOM sécurisés** : Prévention des erreurs "Cannot read properties of null"
+- **Architecture JavaScript modulaire** : Code plus maintenable et robuste
+
+Consultez le [CHANGELOG](CHANGELOG.md) pour l'historique complet des modifications.
 
 ## 🤝 Contribution
 

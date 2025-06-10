@@ -16,6 +16,7 @@
     
     <!-- CSS personnalisé -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/multi_device_download.css') }}">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -150,8 +151,14 @@
     
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/particles.js') }}" type="module"></script>
+    <!-- Bibliothèque QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    
+    <!-- Scripts Citrus -->
+    <script src="{{ url_for('static', filename='js/dom-utils.js') }}" type="module"></script>
     <script src="{{ url_for('static', filename='js/modules/notifications.js') }}" type="module"></script>
     <script src="{{ url_for('static', filename='js/modules/downloader.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/modules/multi_device_downloader.js') }}" type="module"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}" type="module"></script>
     
     {% block extra_js %}{% endblock %}

@@ -1,14 +1,19 @@
 """
 Service de gestion des téléchargements.
 Gère les téléchargements individuels et en lot avec file d'attente et priorités.
+Supporte également la création d'archives ZIP pour les téléchargements multi-appareils.
 """
 
 import os
 import asyncio
 import aiohttp
 import uuid
-from typing import Dict, List, Optional
+import zipfile
+import tempfile
+import shutil
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime
+from pathlib import Path
 from pydantic import BaseModel
 
 from utils.exceptions import DownloadError, ValidationError
@@ -457,3 +462,77 @@ class DownloadManager:
             
         except Exception as e:
             raise DownloadError(f"Erreur de téléchargement: {str(e)}")
+
+
+# Fonctions utilitaires pour les téléchargements multi-appareils
+
+def create_zip_from_tracks(track_ids: List[str]) -> Tuple[str, str]:
+    """
+    Crée un fichier ZIP contenant les pistes spécifiées.
+    
+    Args:
+        track_ids: Liste des IDs de pistes à inclure dans le ZIP
+        
+    Returns:
+        Tuple contenant (chemin du fichier ZIP, nom du fichier ZIP)
+    """
+    from flask import current_app
+    from ..models.track import Track
+    
+    # Vérifier si les pistes existent
+    tracks = Track.query.filter(Track.id.in_(track_ids)).all()
+    
+    if not tracks:
+        raise ValueError("Aucune piste trouvée avec les IDs fournis")
+    
+    # Créer un répertoire temporaire pour le ZIP
+    temp_dir = tempfile.mkdtemp()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    zip_filename = f"citrus_music_{timestamp}.zip"
+    zip_path = os.path.join(temp_dir, zip_filename)
+    
+    try:
+        # Créer le fichier ZIP
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for track in tracks:
+                # Vérifier si le fichier existe
+                if not os.path.exists(track.file_path):
+                    current_app.logger.warning(f"Fichier introuvable: {track.file_path}")
+                    continue
+                
+                # Nom du fichier dans le ZIP (sans le chemin complet)
+                arcname = f"{track.artist} - {track.title}.mp3"
+                
+                # Ajouter le fichier au ZIP
+                zipf.write(track.file_path, arcname=arcname)
+        
+        # Enregistrer le chemin pour le nettoyage ultérieur
+        # Dans un environnement de production, vous devriez implémenter un mécanisme
+        # pour supprimer ces fichiers temporaires après un certain temps
+        current_app.logger.info(f"Archive ZIP créée: {zip_path}")
+        
+        return zip_path, zip_filename
+    
+    except Exception as e:
+        # Nettoyer en cas d'erreur
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise Exception(f"Erreur lors de la création du ZIP: {str(e)}")
+
+
+def get_download_url(track_id: str, token: str = None) -> str:
+    """
+    Génère une URL de téléchargement pour une piste
+    
+    Args:
+        track_id: ID de la piste
+        token: Token de téléchargement optionnel
+        
+    Returns:
+        URL de téléchargement
+    """
+    from flask import url_for, request
+    
+    if token:
+        return url_for('download_token.download_by_token', token=token, _external=True)
+    else:
+        return url_for('api.download_track', track_id=track_id, _external=True)

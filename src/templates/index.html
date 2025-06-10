@@ -309,7 +309,14 @@
 
 <!-- Dernières musiques ajoutées -->
 <section class="recent-tracks fade-in" style="animation-delay: 0.3s">
-    <h2 class="section-title"><i class="fas fa-history"></i> Dernières musiques</h2>
+    <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-history"></i> Dernières musiques</h2>
+        <div class="section-actions">
+            <button id="batchDownloadBtn" class="btn btn-sm btn-primary">
+                <i class="fas fa-download"></i> Téléchargement par lots
+            </button>
+        </div>
+    </div>
     
     <div class="tracks-grid" id="recentTracks">
         <!-- Les pistes seront chargées dynamiquement ici -->
@@ -318,6 +325,14 @@
                 <div class="track-overlay">
                     <div class="play-btn">
                         <i class="fas fa-play"></i>
+                    </div>
+                    <div class="track-actions">
+                        <button class="track-download-btn" title="Télécharger" data-track-id="track.id">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="track-share-btn" title="Options de partage" data-track-id="track.id">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
                     </div>
                 </div>
             </div>

@@ -88,3 +88,104 @@ export function setElementText(id, text) {
     }
     return false;
 }
+
+/**
+ * Crée un élément DOM avec des attributs et du contenu
+ * @param {string} tag - Type d'élément à créer
+ * @param {Object} attributes - Attributs à ajouter à l'élément
+ * @param {string|HTMLElement|Array} content - Contenu à ajouter à l'élément
+ * @returns {HTMLElement} - L'élément créé
+ */
+export function createElement(tag, attributes = {}, content = null) {
+    const element = document.createElement(tag);
+    
+    // Ajouter les attributs
+    Object.entries(attributes).forEach(([key, value]) => {
+        if (key === 'className') {
+            element.className = value;
+        } else if (key === 'dataset') {
+            Object.entries(value).forEach(([dataKey, dataValue]) => {
+                element.dataset[dataKey] = dataValue;
+            });
+        } else {
+            element.setAttribute(key, value);
+        }
+    });
+    
+    // Ajouter le contenu
+    if (content) {
+        if (Array.isArray(content)) {
+            content.forEach(item => {
+                if (item instanceof HTMLElement) {
+                    element.appendChild(item);
+                } else {
+                    element.appendChild(document.createTextNode(item));
+                }
+            });
+        } else if (content instanceof HTMLElement) {
+            element.appendChild(content);
+        } else {
+            element.textContent = content;
+        }
+    }
+    
+    return element;
+}
+
+/**
+ * Crée et affiche une modal
+ * @param {string} id - ID de la modal
+ * @param {string} title - Titre de la modal
+ * @param {HTMLElement|string} content - Contenu de la modal
+ * @param {Function} onClose - Fonction à exécuter à la fermeture
+ * @returns {HTMLElement} - L'élément modal créé
+ */
+export function createModal(id, title, content, onClose = null) {
+    // Supprimer la modal existante si elle existe
+    const existingModal = getElement(id);
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Créer la structure de la modal
+    const modalContent = createElement('div', { className: 'modal-content' }, [
+        createElement('span', { className: 'close-modal', title: 'Fermer' }, '×'),
+        createElement('h2', {}, title),
+        typeof content === 'string' ? createElement('div', {}, content) : content
+    ]);
+    
+    const modal = createElement('div', { id, className: 'modal' }, modalContent);
+    document.body.appendChild(modal);
+    
+    // Gérer la fermeture
+    const closeBtn = modal.querySelector('.close-modal');
+    const closeModal = () => {
+        modal.style.display = 'none';
+        if (onClose && typeof onClose === 'function') {
+            onClose();
+        }
+    };
+    
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Afficher la modal
+    modal.style.display = 'flex';
+    
+    return modal;
+}
+
+/**
+ * Ferme une modal par son ID
+ * @param {string} id - ID de la modal à fermer
+ */
+export function closeModal(id) {
+    const modal = getElement(id);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
