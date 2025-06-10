@@ -2,7 +2,7 @@
 Modèle de données pour les utilisateurs
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from ..database import db
@@ -15,8 +15,9 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)
     password_hash = db.Column(db.String(128), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     last_login = db.Column(db.DateTime)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
     # Relations
     playlists = db.relationship("Playlist", back_populates="user", cascade="all, delete-orphan")
@@ -31,7 +32,7 @@ class User(UserMixin, db.Model):
 
     def update_last_login(self):
         """Met à jour la date de dernière connexion"""
-        self.last_login = datetime.utcnow()
+        self.last_login = datetime.now(UTC)
 
     def to_dict(self):
         """Convertit l'utilisateur en dictionnaire"""
@@ -40,5 +41,6 @@ class User(UserMixin, db.Model):
             'username': self.username,
             'email': self.email,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'last_login': self.last_login.isoformat() if self.last_login else None
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            'is_admin': self.is_admin
         }

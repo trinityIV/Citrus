@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Citrus IPTV{% endblock %}
+{% block content %}
+<div class="iptv-section">
+    <h2 class="section-title"><i class="fas fa-tv"></i> Chaînes IPTV Gratuites</h2>
+    <button id="refreshIptv" class="btn btn-glow"><i class="fas fa-sync"></i> Rafraîchir</button>
+    <div id="iptvGrid" class="iptv-grid"></div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script type="module">
+async function fetchIptv() {
+    const grid = document.getElementById('iptvGrid');
+    grid.innerHTML = '<div>Chargement...</div>';
+    const resp = await fetch('/api/iptv');
+    const data = await resp.json();
+    grid.innerHTML = '';
+    if (!data.channels || !data.channels.length) {
+        grid.innerHTML = '<div>Aucune chaîne trouvée.</div>';
+        return;
+    }
+    for (const ch of data.channels) {
+        const card = document.createElement('div');
+        card.className = 'iptv-card';
+        card.innerHTML = `
+            <div class="iptv-logo">
+                <img src="${ch.logo || '/static/img/tv-default.png'}" alt="logo" onerror="this.src='/static/img/tv-default.png'">
+            </div>
+            <div class="iptv-info">
+                <div class="iptv-title">${ch.name}</div>
+                <div class="iptv-meta">
+                    <span class="iptv-country">${ch.country || ''}</span>
+                    <span class="iptv-lang">${ch.language || ''}</span>
+                    <span class="iptv-category">${ch.category || ''}</span>
+                </div>
+            </div>
+            <div class="iptv-actions">
+                <a href="${ch.url}" target="_blank" class="btn btn-play"><i class="fas fa-play"></i> Regarder</a>
+                <button class="btn btn-copy" onclick="navigator.clipboard.writeText('${ch.url}')"><i class="fas fa-copy"></i></button>
+            </div>
+        `;
+        grid.appendChild(card);
+    }
+}
+document.getElementById('refreshIptv').onclick = fetchIptv;
+document.addEventListener('DOMContentLoaded', fetchIptv);
+</script>
+{% endblock %}

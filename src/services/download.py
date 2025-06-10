@@ -98,25 +98,50 @@ class DownloadManager:
             self.queue.task_done()
 
     async def _download_with_ytdlp(self, status):
-        """Télécharge une piste ou playlist via yt-dlp (scrapping only)."""
+        """Télécharge une piste ou playlist via yt-dlp (scrapping only) ou spotDL pour Spotify."""
         import yt_dlp
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': f'static/music/%(title)s.%(ext)s',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-            'quiet': True,
-            'no_warnings': True
-        }
+        import subprocess
+        import os
+        import glob
+        import shlex
         status.status = 'downloading'
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(status.url, download=True)
-            status.status = 'completed'
-            status.file_path = ydl.prepare_filename(info)
-            status.progress = 100
+        try:
+            if 'spotify.com/track' in status.url or 'spotify.com/playlist' in status.url or 'spotify.com/album' in status.url:
+                # Utiliser spotDL (nécessite spotdl installé dans le venv)
+                output_dir = 'static/music'
+                os.makedirs(output_dir, exist_ok=True)
+                # Appel spotdl
+                cmd = f"spotdl --path {shlex.quote(output_dir)} {shlex.quote(status.url)}"
+                result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                if result.returncode != 0:
+                    raise Exception(f"spotDL error: {result.stderr}")
+                # Chercher le dernier fichier téléchargé
+                files = sorted(glob.glob(os.path.join(output_dir, '*.mp3')), key=os.path.getmtime, reverse=True)
+                status.file_path = files[0] if files else None
+                status.status = 'completed'
+                status.progress = 100
+                status.completed_at = datetime.now()
+            else:
+                ydl_opts = {
+                    'format': 'bestaudio/best',
+                    'outtmpl': f'static/music/%(title)s.%(ext)s',
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': '192',
+                    }],
+                    'quiet': True,
+                    'no_warnings': True
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(status.url, download=True)
+                    status.status = 'completed'
+                    status.file_path = ydl.prepare_filename(info)
+                    status.progress = 100
+                    status.completed_at = datetime.now()
+        except Exception as e:
+            status.status = 'error'
+            status.error = str(e)
             status.completed_at = datetime.now()
 
         

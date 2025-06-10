@@ -4,7 +4,7 @@ Routes pour l'authentification Spotify
 
 from flask import Blueprint, redirect, request, url_for, session, current_app
 from flask_login import login_required, current_user
-from ..services.spotify import SpotifyService
+
 from ..database import db
 
 spotify_bp = Blueprint('spotify', __name__)

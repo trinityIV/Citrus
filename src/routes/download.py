@@ -83,5 +83,5 @@ def list_downloads():
     """Liste tous les téléchargements"""
     tasks = download_manager.get_all_tasks()
     return jsonify({
-        'downloads': [task.to_dict() for task in tasks]
+        'downloads': tasks  # Les tâches sont déjà des dictionnaires
     })

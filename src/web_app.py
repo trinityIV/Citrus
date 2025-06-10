@@ -2,25 +2,23 @@ import os
 import sys
 import logging
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
+from werkzeug.utils import secure_filename
+import subprocess
+import tempfile
+import os
+import random
 from flask_login import LoginManager, UserMixin, current_user, AnonymousUserMixin, login_required, login_user, logout_user
-from config.logging_config import setup_logging
+from src.config.logging_config import setup_logging
 from werkzeug.utils import secure_filename
 import yt_dlp
 from dotenv import load_dotenv
 import spotipy
 
-from services.downloader import DownloadManager
-from services.metadata import MetadataExtractor
+from src.services.downloader import DownloadManager
+from src.services.metadata import MetadataExtractor
 
-# Définition de l'utilisateur anonyme
-class User(UserMixin):
-    def __init__(self, id):
-        self.id = id
 
-class Anonymous(AnonymousUserMixin):
-    def __init__(self):
-        self.id = 'guest'
 
 # Configuration du logger
 logger = setup_logging()
@@ -41,11 +39,11 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
 # Configuration de Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.anonymous_user = Anonymous
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User(user_id)
+    from src.models.user import User
+    return User.query.get(int(user_id))
 
 # Chemins importants
 BASE_DIR = Path(__file__).parent.absolute()
@@ -60,17 +58,86 @@ for folder in [UPLOAD_FOLDER, MUSIC_FOLDER]:
 download_manager = DownloadManager(MUSIC_FOLDER)
 metadata_extractor = MetadataExtractor()
 
+# --- STREAM MAGNET/TORRENT ENDPOINT ---
+from flask import Response
+@app.route('/api/stream/magnet', methods=['POST'])
+def stream_magnet():
+    if request.content_type and request.content_type.startswith('application/json'):
+        data = request.get_json()
+        magnet = data.get('magnet')
+        temp_torrent = None
+    elif 'torrent' in request.files:
+        file = request.files['torrent']
+        temp_dir = tempfile.mkdtemp()
+        temp_torrent = os.path.join(temp_dir, secure_filename(file.filename))
+        file.save(temp_torrent)
+        magnet = None
+    else:
+        return jsonify({'error': 'Aucun lien magnet ou fichier torrent fourni.'}), 400
+    port = random.randint(40000, 49999)
+    if magnet:
+        cmd = f"peerflix '{magnet}' --port {port} --list --path /tmp --no-quit --on-error exit"
+    elif temp_torrent:
+        cmd = f"peerflix '{temp_torrent}' --port {port} --list --path /tmp --no-quit --on-error exit"
+    else:
+        return jsonify({'error': 'Aucun lien magnet ou fichier torrent fourni.'}), 400
+    subprocess.Popen(cmd, shell=True)
+    stream_url = f"http://localhost:{port}"
+    return jsonify({'stream_url': stream_url})
+
+# --- PAGE IPTV ---
+@app.route('/iptv')
+def iptv_page():
+    return render_template('iptv.html')
+
+# --- PAGE STREAM ---
+@app.route('/stream')
+def stream_page():
+    return render_template('stream.html')
+
+
 # Configuration de Spotify
 sp = None
+
+
 
 # Routes d'authentification
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    from models.user import User
+    from database import db
+    error = None
     if request.method == 'POST':
-        # Pour l'instant, on accepte n'importe quel utilisateur
-        login_user(User('guest'))
-        return redirect(url_for('index'))
-    return render_template('base.html')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+        if not user or not user.check_password(password):
+            error = "Nom d'utilisateur ou mot de passe incorrect."
+        else:
+            login_user(user)
+            return redirect(url_for('index'))
+    return render_template('login.html', error=error)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    from models.user import User
+    from database import db
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if not username or not password:
+            error = 'Veuillez remplir tous les champs.'
+        elif User.query.filter_by(username=username).first():
+            error = 'Nom d\'utilisateur déjà pris.'
+        else:
+            user = User(username=username)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            return redirect(url_for('index'))
+    return render_template('register.html', error=error)
 
 @app.route('/logout')
 @login_required
@@ -78,7 +145,16 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+from flask_login import login_required
+
+@app.before_request
+def require_login():
+    allowed_routes = {'login', 'register', 'static'}
+    if not current_user.is_authenticated and request.endpoint and not any(request.endpoint.startswith(r) for r in allowed_routes):
+        return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     """Page d'accueil"""
     # Calcul des statistiques
@@ -171,5 +247,5 @@ def server_error(error):
     return jsonify({'error': 'Erreur interne du serveur'}), 500
 
 if __name__ == '__main__':
-    # Démarrer le serveur sur toutes les interfaces
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Démarrer le serveur sur toutes les interfaces en mode release
+    app.run(host='0.0.0.0', port=5000, debug=False)

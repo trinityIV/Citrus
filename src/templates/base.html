@@ -44,16 +44,16 @@
         </div>
         
         <nav class="nav-menu">
-            <a href="{{ url_for('index') }}" class="nav-item active" data-page="home">
+            <a href="{{ url_for('main.index') }}" class="nav-item active" data-page="home">
                 <i class="fas fa-home"></i>
                 <span>Accueil</span>
             </a>
 
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('auth.profile') }}" class="nav-item" data-page="profile">
+                <!-- <a href="#" class="nav-item" data-page="profile">
                     <i class="fas fa-user"></i>
                     <span>Mon Profil</span>
-                </a>
+                </a> -->
                 <a href="#" class="nav-item" data-page="library">
                     <i class="fas fa-music"></i>
                     <span>Ma Musique</span>
@@ -66,16 +66,20 @@
                     <i class="fas fa-download"></i>
                     <span>Téléchargements</span>
                 </a>
-                <a href="#" class="nav-item" data-page="streams">
+                <a href="{{ url_for('iptv.iptv') }}" class="nav-item" data-page="iptv">
                     <i class="fas fa-tv"></i>
-                    <span>Streams</span>
+                    <span>IPTV</span>
                 </a>
-                <a href="{{ url_for('logout') }}" class="nav-item" data-page="logout">
+                <a href="{{ url_for('stream.stream') }}" class="nav-item" data-page="stream">
+                    <i class="fas fa-magnet"></i>
+                    <span>Stream Magnet/Torrent</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-item" data-page="logout">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Déconnexion</span>
                 </a>
             {% else %}
-                <a href="{{ url_for('login') }}" class="nav-item" data-page="login">
+                <a href="{{ url_for('auth.login') }}" class="nav-item" data-page="login">
                     <i class="fas fa-sign-in-alt"></i>
                     <span>Connexion</span>
                 </a>

@@ -2,7 +2,10 @@
 Package Citrus Music Server
 """
 
-from flask import Flask
+import time
+import logging
+from flask import Flask, g, request
+from pathlib import Path
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -22,8 +25,26 @@ def create_app(config_name='default'):
     app = Flask(__name__)
 
     # Charger la configuration
-    from .config import config
-    app.config.from_object(config[config_name])
+    if config_name == 'testing':
+        app.config.update(
+            TESTING=True,
+            SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',
+            WTF_CSRF_ENABLED=False,
+            UPLOAD_FOLDER=str(Path(__file__).parent / 'static' / 'uploads'),
+            MUSIC_FOLDER=str(Path(__file__).parent / 'static' / 'music'),
+            PLAYLIST_FOLDER=str(Path(__file__).parent / 'static' / 'playlists'),
+            SECRET_KEY='dev-key-for-testing',
+            MAX_CONTENT_LENGTH=100 * 1024 * 1024  # 100MB
+        )
+    else:
+        from .config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
+        config = {
+            'development': DevelopmentConfig,
+            'production': ProductionConfig,
+            'testing': TestingConfig,
+            'default': DevelopmentConfig
+        }
+        app.config.from_object(config[config_name])
 
     # Initialiser la base de données
     # Initialiser les extensions
@@ -38,7 +59,7 @@ def create_app(config_name='default'):
     @login_manager.user_loader
     def load_user(user_id):
         from .models.user import User
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))  # Utilisation de session.get au lieu de query.get
     
     # Enregistrer les blueprints
     app.register_blueprint(main_bp)
@@ -47,6 +68,14 @@ def create_app(config_name='default'):
     app.register_blueprint(playlists_bp)
     app.register_blueprint(spotify_bp)
     app.register_blueprint(download_bp)
+    
+    # Importer et enregistrer les blueprints supplémentaires
+    from .routes.stream import stream_bp
+    from .routes.iptv import iptv_bp
+    from .routes.admin import admin_bp
+    app.register_blueprint(stream_bp)
+    app.register_blueprint(iptv_bp)
+    app.register_blueprint(admin_bp)
 
     # Initialiser le gestionnaire de téléchargements
     from .routes.download import init_download_manager
@@ -54,6 +83,25 @@ def create_app(config_name='default'):
 
     init_db()
 
+
+    # Configurer le logging pour les requêtes lentes
+    if not app.config.get('TESTING'):
+        @app.before_request
+        def before_request():
+            g.start_time = time.time()
+
+        @app.after_request
+        def after_request(response):
+            # Mesurer le temps d'exécution de la requête
+            if hasattr(g, 'start_time'):
+                elapsed = time.time() - g.start_time
+                # Journaliser les requêtes qui prennent plus de 500ms
+                if elapsed > 0.5:
+                    app.logger.warning(
+                        f"Requête lente: {request.method} {request.path} "
+                        f"({elapsed:.2f}s)"
+                    )
+            return response
 
     # Nettoyer la session à la fin des requêtes
     @app.teardown_appcontext

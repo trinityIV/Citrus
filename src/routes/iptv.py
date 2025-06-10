@@ -3,20 +3,31 @@ Routes pour l'IPTV.
 Gère l'accès aux flux IPTV.
 """
 
-from flask import Blueprint, jsonify, request
-from services.iptv_scraper import IPTVScraper
+from flask import Blueprint, jsonify, request, render_template
+from flask_login import login_required
+from ..services.iptv_scraper import IPTVScraper
 
-bp = Blueprint('iptv', __name__, url_prefix='/api/iptv')
+iptv_bp = Blueprint('iptv', __name__)
 scraper = IPTVScraper()
 
-@bp.route('/streams', methods=['GET'])
+@iptv_bp.route('/iptv')
+@login_required
+def iptv():
+    """Page principale IPTV"""
+    return render_template('iptv.html', title='IPTV')
+
+# API Routes
+@iptv_bp.route('/api/iptv/streams', methods=['GET'])
+@login_required
+
 async def get_streams():
     """Récupère la liste des flux disponibles"""
     force_update = request.args.get('force', '').lower() == 'true'
     streams = await scraper.get_streams(force_update=force_update)
     return jsonify(streams)
 
-@bp.route('/check/<path:url>', methods=['GET'])
+@iptv_bp.route('/api/iptv/check/<path:url>', methods=['GET'])
+@login_required
 async def check_stream(url):
     """Vérifie si un flux est accessible"""
     is_active = await scraper.check_stream(url)
@@ -25,25 +36,25 @@ async def check_stream(url):
         'active': is_active
     })
 
-@bp.route('/categories', methods=['GET'])
+@iptv_bp.route('/api/iptv/categories', methods=['GET'])
+@login_required
 async def get_categories():
     """Récupère les catégories de flux disponibles"""
-    streams = await scraper.get_streams()
-    categories = {}
+    categories = await scraper.get_categories()
     
-    for stream in streams:
-        source = stream['source']
-        if source not in categories:
-            categories[source] = {
-                'name': source,
-                'count': 0,
-                'formats': set()
-            }
-        categories[source]['count'] += 1
-        categories[source]['formats'].add(stream['format'])
+    # Formater la réponse
+    result = []
+    for cat, count in categories.items():
+        result.append({
+            'name': cat,
+            'count': count,
+            'url': f'/api/iptv/category/{cat}'
+        })
     
-    # Convertir les sets en listes pour la sérialisation JSON
-    for cat in categories.values():
-        cat['formats'] = list(cat['formats'])
+    return jsonify({
+        'status': 'success',
+        'data': result,
+        'total': len(result)
+    })
     
     return jsonify(list(categories.values()))

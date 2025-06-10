@@ -65,6 +65,8 @@ class IPTVScraper:
         
         # Récupérer les flux depuis toutes les sources
         streams = []
+        # Dictionnaires d'enrichissement (logo, pays, langue, catégorie)
+        meta_by_name = await self._fetch_iptv_org_metadata()
         async with aiohttp.ClientSession() as session:
             # 1. Récupérer les playlists M3U
             m3u_tasks = [
@@ -75,7 +77,11 @@ class IPTVScraper:
             
             for result in m3u_results:
                 if isinstance(result, list):
-                    streams.extend(result)
+                    for s in result:
+                        meta = meta_by_name.get(s['name'].lower())
+                        if meta:
+                            s.update(meta)
+                        streams.append(s)
             
             # 2. Scraper les sites web
             scrape_tasks = [
@@ -86,7 +92,11 @@ class IPTVScraper:
             
             for result in scrape_results:
                 if isinstance(result, list):
-                    streams.extend(result)
+                    for s in result:
+                        meta = meta_by_name.get(s['name'].lower())
+                        if meta:
+                            s.update(meta)
+                        streams.append(s)
         
         # Mettre à jour le cache
         self.cache = {
@@ -96,6 +106,43 @@ class IPTVScraper:
         self.last_update = datetime.now()
         
         return streams
+
+    async def _fetch_iptv_org_metadata(self):
+        """Télécharge et indexe les métadonnées iptv-org (logo, pays, langue, catégorie par nom de chaîne)."""
+        import json
+        import aiohttp
+        meta_urls = [
+            'https://iptv-org.github.io/iptv/channels.json',
+            'https://iptv-org.github.io/iptv/countries.json',
+            'https://iptv-org.github.io/iptv/languages.json',
+            'https://iptv-org.github.io/iptv/categories.json',
+        ]
+        meta = {}
+        try:
+            async with aiohttp.ClientSession() as session:
+                # channels.json
+                async with session.get(meta_urls[0]) as resp:
+                    channels = await resp.json()
+                # countries.json
+                async with session.get(meta_urls[1]) as resp:
+                    countries = {c['code']: c for c in await resp.json()}
+                # languages.json
+                async with session.get(meta_urls[2]) as resp:
+                    languages = {l['code']: l for l in await resp.json()}
+                # categories.json
+                async with session.get(meta_urls[3]) as resp:
+                    categories = {c['id']: c for c in await resp.json()}
+                for ch in channels:
+                    meta[ch['name'].lower()] = {
+                        'logo': ch.get('logo'),
+                        'country': countries.get(ch.get('country', ''), {}).get('name', ''),
+                        'language': languages.get(ch.get('languages', [''])[0], {}).get('name', '') if ch.get('languages') else '',
+                        'category': categories.get(ch.get('category', ''), {}).get('name', '') if ch.get('category') else ''
+                    }
+        except Exception:
+            pass
+        return meta
+
     
     async def _fetch_m3u(self, session: aiohttp.ClientSession, url: str) -> List[Dict[str, Any]]:
         """Récupère et parse une playlist M3U"""

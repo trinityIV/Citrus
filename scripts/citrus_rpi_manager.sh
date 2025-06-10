@@ -74,6 +74,13 @@ install_citrus() {
     source "$VENV/bin/activate"
     pip install --upgrade pip
     pip install -r "$CITRUS_DIR/requirements.txt"
+    echo -e "${CYAN}Installation de spotDL (Spotify Downloader)...${RESET}"
+    pip install spotdl
+    if ! "$VENV/bin/spotdl" --version >/dev/null 2>&1; then
+        echo -e "${RED}ERREUR : spotDL n'a pas pu être installé correctement dans le venv !${RESET}"
+    else
+        echo -e "${GREEN}spotDL installé avec succès.${RESET}"
+    fi
     echo -e "${GREEN}Installation terminée !${RESET}"
     press_enter
 }

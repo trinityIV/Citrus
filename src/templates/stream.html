@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Citrus Stream Magnet/Torrent{% endblock %}
+{% block content %}
+<div class="stream-section">
+    <h2 class="section-title"><i class="fas fa-magnet"></i> Stream Magnet/Torrent</h2>
+    <form id="magnetForm" class="glass-form">
+        <div class="form-group">
+            <input type="text" id="magnetLink" class="form-input" placeholder="Collez un lien magnet ou glissez un fichier .torrent" required>
+        </div>
+        <div class="form-group">
+            <input type="file" id="torrentFile" accept=".torrent">
+        </div>
+        <button type="submit" class="btn btn-primary btn-glow"><i class="fas fa-play"></i> Regarder</button>
+    </form>
+    <div id="streamPlayerContainer" style="display:none;margin-top:2rem;">
+        <video id="streamPlayer" controls style="width:100%;max-width:720px;"></video>
+        <div id="streamStatus"></div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script type="module">
+const form = document.getElementById('magnetForm');
+const player = document.getElementById('streamPlayer');
+const playerContainer = document.getElementById('streamPlayerContainer');
+const statusDiv = document.getElementById('streamStatus');
+form.onsubmit = async (e) => {
+    e.preventDefault();
+    let magnet = document.getElementById('magnetLink').value.trim();
+    let file = document.getElementById('torrentFile').files[0];
+    let body;
+    let isMagnet = !!magnet;
+    if (isMagnet) {
+        body = JSON.stringify({magnet});
+    } else if (file) {
+        const fd = new FormData();
+        fd.append('torrent', file);
+        body = fd;
+    } else {
+        alert('Veuillez fournir un lien magnet ou un fichier .torrent');
+        return;
+    }
+    statusDiv.textContent = 'Démarrage du stream...';
+    let resp = await fetch('/api/stream/magnet', {
+        method: 'POST',
+        body,
+        headers: isMagnet ? {'Content-Type': 'application/json'} : undefined
+    });
+    let data = await resp.json();
+    if (data && data.stream_url) {
+        player.src = data.stream_url;
+        playerContainer.style.display = '';
+        player.play();
+        statusDiv.textContent = '';
+    } else {
+        statusDiv.textContent = 'Erreur lors du lancement du stream.';
+    }
+};
+</script>
+{% endblock %}

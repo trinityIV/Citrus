@@ -2,7 +2,7 @@
 Modèle de données pour les pistes audio
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from ..database import db
 
 class Track(db.Model):
@@ -18,8 +18,8 @@ class Track(db.Model):
     file_size = db.Column(db.Integer)  # Taille en octets
     bitrate = db.Column(db.Integer)  # Bitrate en kbps
     sample_rate = db.Column(db.Integer)  # Fréquence d'échantillonnage en Hz
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     # Relations
     playlists = db.relationship(

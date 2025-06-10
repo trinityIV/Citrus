@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Administration{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Administration du système</h1>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Statistiques de la base de données</h5>
+                </div>
+                <div class="card-body">
+                    <div id="db-stats-loading" class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                    </div>
+                    <div id="db-stats" class="d-none">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Utilisateurs</h5>
+                                        <p class="card-text" id="user-count">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Pistes</h5>
+                                        <p class="card-text" id="track-count">-</p>
+                                        <p class="card-text" id="track-size">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Playlists</h5>
+                                        <p class="card-text" id="playlist-count">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4">Détails de la base de données</h5>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Métrique</th>
+                                    <th>Valeur</th>
+                                </tr>
+                            </thead>
+                            <tbody id="db-details">
+                                <!-- Rempli par JavaScript -->
+                            </tbody>
+                        </table>
+                        
+                        <h5 class="mt-4">Statistiques du cache</h5>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Métrique</th>
+                                    <th>Valeur</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cache-details">
+                                <!-- Rempli par JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Maintenance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2">
+                        <button id="optimize-db" class="btn btn-primary">Optimiser la base de données</button>
+                        <button id="clear-cache" class="btn btn-warning">Vider le cache</button>
+                    </div>
+                    
+                    <div id="maintenance-result" class="mt-3 d-none alert">
+                        <!-- Rempli par JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Fonction pour formater la taille en octets
+    function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+    
+    // Charger les statistiques
+    function loadStats() {
+        document.getElementById('db-stats-loading').classList.remove('d-none');
+        document.getElementById('db-stats').classList.add('d-none');
+        
+        fetch('/api/admin/stats')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors du chargement des statistiques');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Mettre à jour les statistiques générales
+                document.getElementById('user-count').textContent = `${data.users.count} utilisateurs`;
+                document.getElementById('track-count').textContent = `${data.tracks.count} pistes`;
+                document.getElementById('track-size').textContent = `Taille totale: ${formatBytes(data.tracks.total_size)}`;
+                document.getElementById('playlist-count').textContent = `${data.playlists.count} playlists`;
+                
+                // Détails de la base de données
+                const dbDetails = document.getElementById('db-details');
+                dbDetails.innerHTML = '';
+                
+                if (data.database) {
+                    const dbRows = [
+                        { name: 'Nombre de tables', value: data.database.table_count },
+                        { name: 'Taille de la base de données', value: formatBytes(data.database.db_size) }
+                    ];
+                    
+                    dbRows.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${row.name}</td><td>${row.value}</td>`;
+                        dbDetails.appendChild(tr);
+                    });
+                    
+                    // Ajouter les statistiques par table
+                    if (data.database.tables) {
+                        Object.entries(data.database.tables).forEach(([table, stats]) => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>Table ${table}</td><td>${stats.row_count} lignes</td>`;
+                            dbDetails.appendChild(tr);
+                        });
+                    }
+                }
+                
+                // Statistiques du cache
+                const cacheDetails = document.getElementById('cache-details');
+                cacheDetails.innerHTML = '';
+                
+                if (data.cache) {
+                    const cacheRows = [
+                        { name: 'Taille du cache', value: `${data.cache.size} / ${data.cache.max_size} entrées` },
+                        { name: 'Hits', value: data.cache.hits },
+                        { name: 'Misses', value: data.cache.misses },
+                        { name: 'Taux de succès', value: `${(data.cache.hit_rate * 100).toFixed(2)}%` },
+                        { name: 'TTL', value: `${data.cache.ttl} secondes` }
+                    ];
+                    
+                    cacheRows.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${row.name}</td><td>${row.value}</td>`;
+                        cacheDetails.appendChild(tr);
+                    });
+                }
+                
+                // Afficher les statistiques
+                document.getElementById('db-stats-loading').classList.add('d-none');
+                document.getElementById('db-stats').classList.remove('d-none');
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors du chargement des statistiques');
+            });
+    }
+    
+    // Optimiser la base de données
+    document.getElementById('optimize-db').addEventListener('click', function() {
+        if (!confirm('Voulez-vous vraiment optimiser la base de données ?')) {
+            return;
+        }
+        
+        fetch('/api/admin/optimize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors de l\'optimisation');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const resultDiv = document.getElementById('maintenance-result');
+            resultDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+            
+            if (data.success) {
+                resultDiv.classList.add('alert-success');
+                resultDiv.textContent = 'Base de données optimisée avec succès !';
+                
+                // Recharger les statistiques
+                loadStats();
+            } else {
+                resultDiv.classList.add('alert-danger');
+                resultDiv.textContent = 'Erreur lors de l\'optimisation: ' + (data.error || 'Erreur inconnue');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            
+            const resultDiv = document.getElementById('maintenance-result');
+            resultDiv.classList.remove('d-none', 'alert-success');
+            resultDiv.classList.add('alert-danger');
+            resultDiv.textContent = 'Erreur lors de l\'optimisation: ' + error.message;
+        });
+    });
+    
+    // Vider le cache
+    document.getElementById('clear-cache').addEventListener('click', function() {
+        if (!confirm('Voulez-vous vraiment vider le cache ?')) {
+            return;
+        }
+        
+        fetch('/api/admin/cache/clear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors du vidage du cache');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const resultDiv = document.getElementById('maintenance-result');
+            resultDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+            
+            if (data.success) {
+                resultDiv.classList.add('alert-success');
+                resultDiv.textContent = 'Cache vidé avec succès !';
+                
+                // Recharger les statistiques
+                loadStats();
+            } else {
+                resultDiv.classList.add('alert-danger');
+                resultDiv.textContent = 'Erreur lors du vidage du cache: ' + (data.error || 'Erreur inconnue');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            
+            const resultDiv = document.getElementById('maintenance-result');
+            resultDiv.classList.remove('d-none', 'alert-success');
+            resultDiv.classList.add('alert-danger');
+            resultDiv.textContent = 'Erreur lors du vidage du cache: ' + error.message;
+        });
+    });
+    
+    // Charger les statistiques au chargement de la page
+    document.addEventListener('DOMContentLoaded', loadStats);
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
 Modèle de données pour les playlists
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from ..database import db
 
 # Table d'association pour les pistes dans les playlists
@@ -10,7 +10,7 @@ playlist_tracks = db.Table('playlist_tracks',
     db.Column('playlist_id', db.Integer, db.ForeignKey('playlists.id'), primary_key=True),
     db.Column('track_id', db.Integer, db.ForeignKey('tracks.id'), primary_key=True),
     db.Column('position', db.Integer, nullable=False),
-    db.Column('added_at', db.DateTime, default=datetime.utcnow)
+    db.Column('added_at', db.DateTime, default=lambda: datetime.now(UTC))
 )
 
 class Playlist(db.Model):
@@ -25,8 +25,8 @@ class Playlist(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(500))
     cover_image = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     # Relations
